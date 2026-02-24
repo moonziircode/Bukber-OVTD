@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { menuData } from '../data/menu';
-import { Lock, Trash2, Download } from 'lucide-react';
+import { Lock, Trash2, Download, UserMinus } from 'lucide-react';
 
 export default function AdminRecap() {
   const [password, setPassword] = useState('');
@@ -16,7 +16,7 @@ export default function AdminRecap() {
 
   const handleLogin = (e: FormEvent) => {
     e.preventDefault();
-    if (password === 'BukberOvertiden123') {
+    if (password === 'pesbukovtd') {
       setIsAuthenticated(true);
     } else {
       alert('Password salah woy! 🦆 Coba inget-inget lagi.');
@@ -28,6 +28,46 @@ export default function AdminRecap() {
       localStorage.removeItem('bukber_orders');
       setOrders([]);
     }
+  };
+
+  const deleteOrder = (id: string, name: string) => {
+    if (confirm(`Yakin mau hapus pesanan atas nama ${name}?`)) {
+      const updatedOrders = orders.filter(order => order.id !== id);
+      localStorage.setItem('bukber_orders', JSON.stringify(updatedOrders));
+      setOrders(updatedOrders);
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (orders.length === 0) {
+      alert('Belum ada data untuk dicopy!');
+      return;
+    }
+
+    let text = `*REKAP PESANAN BUKBER KALEYO*\n`;
+    text += `Total Peserta: ${orders.length} orang\n`;
+    text += `--------------------------------\n\n`;
+
+    orders.forEach((order, index) => {
+      text += `${index + 1}. *${order.name}*\n`;
+      Object.entries(order.items).forEach(([id, qty]) => {
+        const item = menuData.find(m => m.id === id);
+        if (item) {
+          text += `   - ${qty}x ${item.name}\n`;
+        }
+      });
+      text += `   💰 Total: Rp ${order.total.toLocaleString('id-ID')}\n\n`;
+    });
+
+    text += `--------------------------------\n`;
+    text += `*GRAND TOTAL: Rp ${grandTotal.toLocaleString('id-ID')}*\n`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Rekap berhasil dicopy! Tinggal paste di WhatsApp. 🚀');
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+      alert('Gagal copy rekap. Coba lagi ya.');
+    });
   };
 
   if (!isAuthenticated) {
@@ -66,13 +106,22 @@ export default function AdminRecap() {
           <h2 className="text-3xl font-black text-slate-800 tracking-tight">Rekap Pesanan</h2>
           <p className="text-slate-500 text-lg mt-1">Total ada <strong className="text-amber-600">{orders.length}</strong> orang yang ikutan.</p>
         </div>
-        <button 
-          onClick={clearData} 
-          className="flex items-center justify-center gap-2 px-6 py-3 text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors font-bold"
-        >
-          <Trash2 className="w-5 h-5" />
-          Reset Data
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={copyToClipboard} 
+            className="flex items-center justify-center gap-2 px-6 py-3 text-white bg-slate-900 rounded-xl hover:bg-black transition-colors font-bold shadow-md shadow-slate-900/20"
+          >
+            <Download className="w-5 h-5" />
+            Copy Rekap
+          </button>
+          <button 
+            onClick={clearData} 
+            className="flex items-center justify-center gap-2 px-6 py-3 text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors font-bold"
+          >
+            <Trash2 className="w-5 h-5" />
+            Reset
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
@@ -83,12 +132,13 @@ export default function AdminRecap() {
                 <th className="px-8 py-5">Nama Pemesan</th>
                 <th className="px-8 py-5">Detail Pesanan</th>
                 <th className="px-8 py-5 text-right">Total Bayar</th>
+                <th className="px-8 py-5 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-8 py-16 text-center text-slate-500 text-lg">Belum ada pesanan masuk nih. Sepi amat. 🦆</td>
+                  <td colSpan={4} className="px-8 py-16 text-center text-slate-500 text-lg">Belum ada pesanan masuk nih. Sepi amat. 🦆</td>
                 </tr>
               ) : (
                 orders.map(order => (
@@ -115,6 +165,15 @@ export default function AdminRecap() {
                         Inc. Tax & Service
                       </div>
                     </td>
+                    <td className="px-8 py-6 text-center align-top">
+                      <button
+                        onClick={() => deleteOrder(order.id, order.name)}
+                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Hapus Pesanan"
+                      >
+                        <UserMinus className="w-5 h-5 mx-auto" />
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -126,6 +185,7 @@ export default function AdminRecap() {
                   <td className="px-8 py-6 text-right font-black text-amber-600 text-2xl tracking-tight">
                     Rp {grandTotal.toLocaleString('id-ID')}
                   </td>
+                  <td></td>
                 </tr>
               </tfoot>
             )}
