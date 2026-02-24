@@ -16,14 +16,38 @@ export default function OrderForm() {
   };
 
   const handleQuantityChange = (id: string, delta: number) => {
+    const item = menuData.find(m => m.id === id);
+    if (!item) return;
+
     setOrder(prev => {
-      const current = prev[id] || 0;
-      const next = Math.max(0, current + delta);
-      if (next === 0) {
+      // If adding
+      if (delta > 0) {
+        // Find if there's already an item in the same category
+        const sameCategoryItemId = Object.keys(prev).find(prevId => {
+          const prevItem = menuData.find(m => m.id === prevId);
+          return prevItem && prevItem.category === item.category;
+        });
+
+        // If it's the same item, it's already selected (limit 1), so do nothing
+        if (sameCategoryItemId === id) return prev;
+
+        const newOrder = { ...prev };
+        
+        // Remove previous item in same category if exists
+        if (sameCategoryItemId) {
+          delete newOrder[sameCategoryItemId];
+        }
+
+        // Set current item to 1 (limit is 1)
+        newOrder[id] = 1;
+        return newOrder;
+      } 
+      
+      // If removing
+      else {
         const { [id]: _, ...rest } = prev;
         return rest;
       }
-      return { ...prev, [id]: next };
     });
   };
 
