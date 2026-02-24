@@ -95,33 +95,18 @@ export default function OrderForm() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Message */}
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-amber-100 relative overflow-hidden">
-        <div className="absolute -right-8 -top-8 text-amber-50 opacity-50 rotate-12">
-          <Utensils className="w-32 h-32" />
-        </div>
-        <h1 className="text-xl font-black text-amber-600 mb-4 relative z-10 tracking-tight">Halo teman-teman semua! 👋</h1>
-        <div className="space-y-3 text-slate-600 leading-relaxed relative z-10 text-sm">
-          <p>Sebelumnya panitia mau minta maaf yang sebesar-besarnya nih. Rencana awal kita mau buka puasa cantik di <strong className="text-slate-800">Ruangnamu Coffee</strong>, eh ternyata karena panitia (ehem) agak telat reservasi, tempatnya udah full booked duluan sama orang lain. 😅</p>
-          <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl flex gap-3 items-start">
-            <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-            <p className="text-amber-900">Jadi, mari kita putar haluan dan siapkan perut untuk menikmati kelezatan hakiki di <strong className="font-black text-amber-600">Bebek Kaleyo Lenteng Agung</strong>! 🦆🔥</p>
-          </div>
-          <p>Tenang aja, rasanya nggak kalah mantap dan pastinya bikin buka puasa kita makin meriah. Yuk, langsung aja pilih menu favorit kalian di bawah ini. Jangan sampai kelewatan ya!</p>
-        </div>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name Input */}
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-          <label htmlFor="name" className="block text-base font-bold text-slate-800 mb-2">Nama Kamu Siapa Nih?</label>
+          <label htmlFor="name" className="block text-base font-bold text-slate-800 mb-2 text-right" dir="rtl">مااسمك؟</label>
           <input
             type="text"
             id="name"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Ketik nama panggilan aja..."
-            className="w-full px-4 py-3 rounded-xl border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all text-base font-medium text-slate-800 placeholder:text-slate-400"
+            placeholder=""
+            className="w-full px-4 py-3 rounded-xl border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all text-base font-medium text-slate-800 placeholder:text-slate-400 text-right"
+            dir="rtl"
           />
         </div>
 
