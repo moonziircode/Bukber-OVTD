@@ -162,7 +162,7 @@ export default function AdminRecap() {
                         Rp {order.total.toLocaleString('id-ID')}
                       </div>
                       <div className="text-xs text-slate-400 font-medium mt-1">
-                        Inc. Tax & Service
+                        Inc. Tax (10%)
                       </div>
                     </td>
                     <td className="px-8 py-6 text-center align-top">

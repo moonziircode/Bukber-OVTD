@@ -36,9 +36,8 @@ export default function OrderForm() {
     }, 0);
   }, [order]);
 
-  const ppn = subtotal * 0.11; 
-  const serviceCharge = subtotal * 0.03; 
-  const total = subtotal + ppn + serviceCharge;
+  const ppn = subtotal * 0.10; 
+  const total = subtotal + ppn;
 
   // Ordered items details for the floating summary
   const orderedItems = useMemo(() => {
@@ -67,7 +66,6 @@ export default function OrderForm() {
       items: order,
       subtotal,
       ppn,
-      serviceCharge,
       total,
       timestamp: new Date().toISOString()
     };
@@ -195,7 +193,7 @@ export default function OrderForm() {
                   {showSummaryDetails ? 'Tutup Detail' : 'Lihat Detail Pesanan'}
                 </div>
                 <div className="flex justify-between gap-2 pr-4"><span>Subtotal:</span> <span className="text-slate-700">Rp {subtotal.toLocaleString('id-ID')}</span></div>
-                <div className="flex justify-between gap-2 pr-4"><span>Tax & Svc:</span> <span className="text-slate-700">Rp {(ppn + serviceCharge).toLocaleString('id-ID')}</span></div>
+                <div className="flex justify-between gap-2 pr-4"><span>PPN (10%):</span> <span className="text-slate-700">Rp {ppn.toLocaleString('id-ID')}</span></div>
               </div>
               <div className="text-right shrink-0">
                 <div className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-0.5">Total Bayar</div>
