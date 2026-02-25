@@ -1,11 +1,13 @@
 import { useState, useMemo, FormEvent } from 'react';
 import { menuData } from '../data/menu';
-import { Utensils, ShoppingBag, CheckCircle2, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Utensils, ShoppingBag, CheckCircle2, Info, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function OrderForm() {
   const [name, setName] = useState('');
   const [order, setOrder] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Categories accordion state
   const categories = Array.from(new Set(menuData.map(m => m.category)));
@@ -73,7 +75,7 @@ export default function OrderForm() {
 
   const [showSummaryDetails, setShowSummaryDetails] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       alert('Tolong isi nama dulu ya kak! 🦆');
@@ -84,19 +86,28 @@ export default function OrderForm() {
       return;
     }
 
-    const newOrder = {
-      id: Date.now().toString(),
-      name,
-      items: order,
-      subtotal,
-      ppn,
-      total,
-      timestamp: new Date().toISOString()
-    };
+    setIsLoading(true);
 
-    const existingOrders = JSON.parse(localStorage.getItem('bukber_orders') || '[]');
-    localStorage.setItem('bukber_orders', JSON.stringify([...existingOrders, newOrder]));
-    setSubmitted(true);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .insert([
+          {
+            name,
+            items: order,
+            total
+          }
+        ]);
+
+      if (error) throw error;
+
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Error saving order:', error);
+      alert('Waduh, gagal simpan pesanan nih. Coba lagi ya!');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (submitted) {
@@ -226,10 +237,20 @@ export default function OrderForm() {
             </div>
             <button 
               type="submit" 
-              className="w-full py-3 bg-slate-900 hover:bg-black text-white rounded-xl font-bold text-base shadow-lg shadow-slate-900/20 transition-all flex items-center justify-center gap-2"
+              disabled={isLoading}
+              className="w-full py-3 bg-slate-900 hover:bg-black text-white rounded-xl font-bold text-base shadow-lg shadow-slate-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <ShoppingBag className="w-5 h-5" />
-              Kirim Pesanan
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="w-5 h-5" />
+                  Kirim Pesanan
+                </>
+              )}
             </button>
           </div>
         </div>

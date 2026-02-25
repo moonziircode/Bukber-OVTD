@@ -1,16 +1,35 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { menuData } from '../data/menu';
-import { Lock, Trash2, Download, UserMinus } from 'lucide-react';
+import { Lock, Trash2, Download, UserMinus, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function AdminRecap() {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      setOrders(data || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      alert('Gagal mengambil data pesanan. Coba refresh halaman.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
-      const saved = JSON.parse(localStorage.getItem('bukber_orders') || '[]');
-      setOrders(saved);
+      fetchOrders();
     }
   }, [isAuthenticated]);
 
@@ -23,18 +42,46 @@ export default function AdminRecap() {
     }
   };
 
-  const clearData = () => {
+  const clearData = async () => {
     if (confirm('Yakin mau hapus semua data pesanan? Data yang udah dihapus nggak bisa balik lagi lho!')) {
-      localStorage.removeItem('bukber_orders');
-      setOrders([]);
+      setIsLoading(true);
+      try {
+        const { error } = await supabase
+          .from('orders')
+          .delete()
+          .neq('id', 0); // Hack to delete all rows if RLS allows it
+          
+        if (error) {
+          // If bulk delete fails (often due to RLS or Supabase settings), show a message
+          alert('Penghapusan massal gagal. Silakan hapus data melalui dashboard Supabase Anda.');
+          throw error;
+        }
+        
+        setOrders([]);
+        alert('Semua data berhasil dihapus!');
+      } catch (error) {
+        console.error('Error clearing data:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  const deleteOrder = (id: string, name: string) => {
+  const deleteOrder = async (id: string, name: string) => {
     if (confirm(`Yakin mau hapus pesanan atas nama ${name}?`)) {
-      const updatedOrders = orders.filter(order => order.id !== id);
-      localStorage.setItem('bukber_orders', JSON.stringify(updatedOrders));
-      setOrders(updatedOrders);
+      try {
+        const { error } = await supabase
+          .from('orders')
+          .delete()
+          .eq('id', id);
+          
+        if (error) throw error;
+        
+        setOrders(orders.filter(order => order.id !== id));
+      } catch (error) {
+        console.error('Error deleting order:', error);
+        alert('Gagal menghapus pesanan. Coba lagi ya.');
+      }
     }
   };
 
@@ -116,9 +163,10 @@ export default function AdminRecap() {
           </button>
           <button 
             onClick={clearData} 
-            className="flex items-center justify-center gap-2 px-6 py-3 text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors font-bold"
+            disabled={isLoading}
+            className="flex items-center justify-center gap-2 px-6 py-3 text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors font-bold disabled:opacity-50"
           >
-            <Trash2 className="w-5 h-5" />
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
             Reset
           </button>
         </div>
@@ -136,7 +184,14 @@ export default function AdminRecap() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {orders.length === 0 ? (
+              {isLoading && orders.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-8 py-16 text-center text-slate-500 text-lg">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-amber-500" />
+                    Mengambil data pesanan...
+                  </td>
+                </tr>
+              ) : orders.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-8 py-16 text-center text-slate-500 text-lg">Belum ada pesanan masuk nih. Sepi amat. 🦆</td>
                 </tr>
